@@ -1,0 +1,135 @@
+type UserRole = 
+ variant {
+   admin;
+   guest;
+   user;
+ };
+type UserProfile = 
+ record {
+   avatarUrl: text;
+   bio: text;
+   name: text;
+   skills: vec text;
+ };
+type ProfileEntry = 
+ record {
+   owner: principal;
+   profile: UserProfile;
+ };
+type PlayerRating = 
+ record {
+   comment: text;
+   createdAt: int;
+   matchId: text;
+   ratedPrincipal: principal;
+   raterPrincipal: principal;
+   score: nat;
+ };
+type PlayerRank = 
+ record {
+   avgRating: float64;
+   lastActive: int;
+   showUpCount: nat;
+   totalMatches: nat;
+   totalRatings: nat;
+   userPrincipal: principal;
+ };
+type NewsItem = 
+ record {
+   description: text;
+   id: text;
+   imageUrl: text;
+   publishedAt: text;
+   source: text;
+   sport: text;
+   title: text;
+   url: text;
+ };
+type Message = 
+ record {
+   createdAt: int;
+   from: principal;
+   id: text;
+   "text": text;
+   to: principal;
+ };
+type MatchResult = 
+ variant {
+   err: text;
+   ok;
+ };
+type MatchPublic = 
+ record {
+   createdAt: int;
+   creator: principal;
+   id: text;
+   location: text;
+   missing: int;
+   participants: vec principal;
+   requirements: opt text;
+   sport: text;
+   time: text;
+   title: text;
+ };
+type MatchEntry = 
+ record {
+   matched: principal;
+   mutual: bool;
+   profile: UserProfile;
+ };
+type CheckInPublic = 
+ record {
+   matchId: text;
+   participant: text;
+   timestamp: int;
+ };
+type AuthResult = 
+ variant {
+   err: text;
+   ok: text;
+ };
+service : {
+  _initializeAccessControl: () -> ();
+  assignCallerUserRole: (user: principal, role: UserRole) -> ();
+  checkIn: (matchId: text) -> (variant {
+                                 err: text;
+                                 ok: text;
+                               });
+  createMatch: (sport: text, title: text, time: text, location: text,
+   missing: int, requirements: opt text) -> (text);
+  deleteExpiredMatches: (ids: vec text) -> (nat);
+  deleteMatch: (id: text) -> (MatchResult);
+  getAllMatches: () -> (vec MatchPublic) query;
+  getAllProfiles: () -> (vec ProfileEntry) query;
+  getAllRankings: () -> (vec PlayerRank) query;
+  getCallerUserRole: () -> (UserRole) query;
+  getCheckIns: (matchId: text) -> (vec CheckInPublic) query;
+  getHotNews: () -> (vec NewsItem);
+  getMatchParticipants: (id: text) -> (vec principal) query;
+  getMessages: (withUser: principal) -> (vec Message) query;
+  getMyMatches: () -> (vec MatchEntry) query;
+  getMyProfile: () -> (opt UserProfile) query;
+  getPlayerRank: (user: principal) -> (opt PlayerRank) query;
+  getRatingsForPlayer: (user: principal) -> (vec PlayerRating) query;
+  hasCheckedIn: (matchId: text) -> (bool) query;
+  isCallerAdmin: () -> (bool) query;
+  isMatchParticipant: (id: text) -> (bool) query;
+  joinMatch: (id: text) -> ();
+  leaveMatch: (id: text) -> ();
+  loginUser: (username: text, password: text) -> (AuthResult);
+  logoutUser: (token: text) -> ();
+  matchWithUser: (target: principal) -> ();
+  ratePlayer: (matchId: text, ratedPrincipal: principal, score: nat, comment:
+   text) -> (variant {
+               err: text;
+               ok;
+             });
+  registerMe: () -> ();
+  registerUser: (username: text, password: text) -> (AuthResult);
+  searchMatchesByLocation: (location: text) -> (vec MatchPublic) query;
+  searchMatchesBySport: (sport: text) -> (vec MatchPublic) query;
+  sendMessage: (to: principal, "text": text) -> (text);
+  updateMyProfile: (name: text, bio: text, avatarUrl: text, skills:
+   vec text) -> ();
+  validateSession: (token: text) -> (opt text) query;
+}
