@@ -1374,6 +1374,14 @@ function SportDetailModal({
   );
 }
 
+const DISTRICTS = [
+  "Quận 1", "Quận 2", "Quận 3", "Quận 4", "Quận 5",
+  "Quận 6", "Quận 7", "Quận 8", "Quận 9", "Quận 10",
+  "Quận 11", "Quận 12", "Bình Thạnh", "Bình Tân", "Gò Vấp",
+  "Phú Nhuận", "Tân Bình", "Tân Phú", "Thủ Đức",
+  "Bình Chánh", "Cần Giờ", "Củ Chi", "Hóc Môn", "Nhà Bè",
+];
+
 function HeroSection({
   onSearch,
   onCreateMatch,
@@ -1381,6 +1389,8 @@ function HeroSection({
   filterSlots,
   onFilterTime,
   onFilterSlots,
+  filterLocation,
+  onFilterLocation,
 }: {
   onSearch: (sport: string, location: string) => void;
   onCreateMatch: (sport: string) => void;
@@ -1388,13 +1398,14 @@ function HeroSection({
   filterSlots: boolean;
   onFilterTime: (v: string) => void;
   onFilterSlots: (v: boolean) => void;
+  filterLocation: string;
+  onFilterLocation: (v: string) => void;
 }) {
   const [sport, setSport] = useState("all");
-  const [location, setLocation] = useState("");
   const [selectedSport, setSelectedSport] = useState<string | null>(null);
 
   function handleSearch() {
-    onSearch(sport === "all" ? "" : sport, location);
+    onSearch(sport === "all" ? "" : sport, "");
     document.getElementById("matches")?.scrollIntoView({ behavior: "smooth" });
   }
 
@@ -1499,13 +1510,24 @@ function HeroSection({
                 ))}
               </SelectContent>
             </Select>
-            <Input
-              data-ocid="hero.search_input"
-              placeholder="Địa điểm..."
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="bg-white/10 border-white/20 text-white placeholder:text-white/40 flex-1 min-h-[48px]"
-            />
+            <Select
+              value={filterLocation || "all"}
+              onValueChange={(v) => {
+                const val = v === "all" ? "" : v;
+                onFilterLocation(val);
+                document.getElementById("matches")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
+              <SelectTrigger className="bg-white/10 border-white/20 text-white flex-1 min-h-[48px]">
+                <SelectValue placeholder="Chọn quận/huyện..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">📍 Tất cả khu vực</SelectItem>
+                {DISTRICTS.map((d) => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button
               data-ocid="hero.find_button"
               onClick={handleSearch}
@@ -5104,6 +5126,12 @@ export default function App() {
         <HeroSection
           onSearch={handleSearch}
           onCreateMatch={handleCreateMatchFromSport}
+          filterTime={filterTime}
+          filterSlots={filterSlots}
+          onFilterTime={setFilterTime}
+          onFilterSlots={setFilterSlots}
+          filterLocation={filterLocation}
+          onFilterLocation={setFilterLocation}
         />
         {isLoggedIn && fakeIdentity ? (
           <>
