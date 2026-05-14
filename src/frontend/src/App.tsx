@@ -2601,7 +2601,7 @@ function MatchDetailModal({
                 placeholder="Nhập bình luận..."
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAddComment(); } }}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); handleAddComment(); } }}
                 className="flex-1 h-9 text-sm"
                 maxLength={300}
               />
