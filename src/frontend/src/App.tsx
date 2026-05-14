@@ -951,11 +951,13 @@ function NotificationBell({
   unreadCount,
   markAllRead,
   clearAll,
+  onNotificationClick,
 }: {
   notifications: Notification[];
   unreadCount: number;
   markAllRead: () => void;
   clearAll: () => void;
+  onNotificationClick: (n: Notification) => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1043,10 +1045,12 @@ function NotificationBell({
                 </div>
               ) : (
                 notifications.map((n, i) => (
-                  <div
+                  <button
+                    type="button"
                     key={n.id}
                     data-ocid={`header.notification.item.${i + 1}`}
-                    className={`px-4 py-3 text-sm transition-colors ${
+                    onClick={() => { onNotificationClick(n); setOpen(false); }}
+                    className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 cursor-pointer ${
                       n.read
                         ? "bg-transparent"
                         : "bg-blue-50/60 dark:bg-blue-950/20 border-l-2 border-l-blue-400"
@@ -1065,7 +1069,7 @@ function NotificationBell({
                         {formatTime(n.createdAt)}
                       </span>
                     </div>
-                  </div>
+                  </button>
                 ))
               )}
             </div>
@@ -1087,6 +1091,7 @@ function Header({
   unreadCount,
   markAllRead,
   clearAll,
+  onNotificationClick,
   isLoggedIn,
   displayName,
   onLoginClick,
@@ -1100,6 +1105,7 @@ function Header({
   unreadCount: number;
   markAllRead: () => void;
   clearAll: () => void;
+  onNotificationClick: (n: Notification) => void;
   isLoggedIn: boolean;
   displayName: string;
   onLoginClick: () => void;
@@ -1161,6 +1167,7 @@ function Header({
                 unreadCount={unreadCount}
                 markAllRead={markAllRead}
                 clearAll={clearAll}
+                onNotificationClick={onNotificationClick}
               />
               {isLoggedIn ? (
                 <>
@@ -4791,8 +4798,11 @@ export default function App() {
   // Fetch all profiles at app level
   const { data: allProfiles = [] } = useGetAllProfiles(isLoggedIn);
 
-  const { notifications, unreadCount, markAllRead, clearAll } =
+  const { notifications, unreadCount, markAllRead, clearAll, markOneRead } =
     useNotifications(isLoggedIn, callerPrincipal);
+
+  const [openChatWith, setOpenChatWith] = useState<string | null>(null);
+  const chatSectionRef = useRef<HTMLDivElement>(null);
 
   const { data: allMatchesForReminders } = useGetAllMatches();
 
@@ -4860,6 +4870,15 @@ export default function App() {
         unreadCount={unreadCount}
         markAllRead={markAllRead}
         clearAll={clearAll}
+        onNotificationClick={(n) => {
+          markOneRead(n.id);
+          if (n.senderPrincipal) {
+            setOpenChatWith(n.senderPrincipal);
+            setTimeout(() => {
+              chatSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+            }, 150);
+          }
+        }}
         isLoggedIn={isLoggedIn}
         displayName={user?.displayName ?? ""}
         onLoginClick={() => setAuthModalOpen(true)}
@@ -4886,7 +4905,13 @@ export default function App() {
           <>
             <TodayMatchesSection isLoggedIn={isLoggedIn} />
             <FindPlayersSection callerPrincipal={callerPrincipal} />
-            <ChatSection identity={fakeIdentity as any} />
+            <div ref={chatSectionRef}>
+              <ChatSection
+                identity={fakeIdentity as any}
+                openWithPrincipal={openChatWith}
+                onOpenHandled={() => setOpenChatWith(null)}
+              />
+            </div>
           </>
         ) : null}
         <LiveMatchesSection
