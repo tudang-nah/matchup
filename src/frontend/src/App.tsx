@@ -76,8 +76,6 @@ import {
   useGetAllRankings,
   useGetCheckIns,
   useGetHotNews,
-  useGetMatchComments,
-  useAddComment,
   useGetMatchParticipants,
   useGetMyMatches,
   useGetMyProfile,
@@ -1886,41 +1884,7 @@ function MatchDetailModal({
   >({});
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [commentText, setCommentText] = useState("");
-  const [optimisticComments, setOptimisticComments] = useState<Array<{id: string; authorName: string; authorPrincipal: string; text: string; createdAt: number}>>([]);
-  const { data: serverComments = [] } = useGetMatchComments(match?.id ?? "", open && !!match);
-  const addCommentMutation = useAddComment();
 
-  // Reset optimistic when modal closes or server catches up
-  const comments = [
-    ...(serverComments as Array<{id: string; authorName: string; authorPrincipal: string; text: string; createdAt: number}>),
-    ...optimisticComments.filter(
-      (o) => !(serverComments as Array<{id: string}>).some((s) => s.id === o.id)
-    ),
-  ].sort((a, b) => a.createdAt - b.createdAt);
-
-  async function handleAddComment() {
-    if (!commentText.trim() || !match) return;
-    const text = commentText.trim();
-    const tempId = `optimistic_${Date.now()}`;
-    setCommentText("");
-    // Show immediately
-    setOptimisticComments((prev) => [...prev, {
-      id: tempId,
-      authorName: user?.displayName ?? "Bạn",
-      authorPrincipal: user?.principal ?? "",
-      text,
-      createdAt: Date.now(),
-    }]);
-    try {
-      await addCommentMutation.mutateAsync({ matchId: match.id, text });
-      // Remove optimistic after server confirms
-      setOptimisticComments((prev) => prev.filter((c) => c.id !== tempId));
-    } catch {
-      setOptimisticComments((prev) => prev.filter((c) => c.id !== tempId));
-      toast.error("Không thể gửi bình luận");
-    }
-  }
 
   if (!match) return null;
   const cfg = getSportConfig(match.sport);
@@ -2081,9 +2045,7 @@ function MatchDetailModal({
       <DialogContent
         className="max-w-lg max-h-[90vh] overflow-y-auto"
         data-ocid="match_detail.dialog"
-        onKeyDown={(e) => {
-          if (e.key === "Enter") e.stopPropagation();
-        }}
+
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-xl font-bold">
@@ -2564,64 +2526,7 @@ function MatchDetailModal({
           </div>
         )}
 
-        {/* Comments section */}
-        <div className="border-t border-border pt-4 space-y-3">
-          <h4 className="text-sm font-semibold flex items-center gap-2">
-            💬 Bình luận
-            {comments.length > 0 && (
-              <span className="text-xs text-muted-foreground font-normal">({comments.length})</span>
-            )}
-          </h4>
 
-          {/* Comment list */}
-          {comments.length > 0 ? (
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {(comments as Array<{id: string; authorName: string; authorPrincipal: string; text: string; createdAt: number}>).map((c) => (
-                <div key={c.id} className="flex gap-2 items-start">
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-xs font-bold text-primary">
-                    {c.authorName?.charAt(0)?.toUpperCase() || "?"}
-                  </div>
-                  <div className="flex-1 bg-muted/50 rounded-xl px-3 py-2">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-xs font-semibold">{c.authorName || "Ẩn danh"}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(c.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    </div>
-                    <p className="text-sm leading-snug">{c.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
-          )}
-
-          {/* Input */}
-          {isLoggedIn ? (
-            <div className="flex gap-2 items-center">
-              <Input
-                placeholder="Nhập bình luận..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); handleAddComment(); } }}
-                className="flex-1 h-9 text-sm"
-                maxLength={300}
-              />
-              <Button
-                size="sm"
-                onClick={handleAddComment}
-                disabled={!commentText.trim() || addCommentMutation.isPending}
-                className="h-9 px-3 shrink-0 border-0 text-white"
-                style={{ background: "linear-gradient(135deg, oklch(0.58 0.18 220), oklch(0.70 0.20 138))" }}
-              >
-                {addCommentMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Gửi"}
-              </Button>
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">Đăng nhập để bình luận</p>
-          )}
-        </div>
       </DialogContent>
     </Dialog>
   );
