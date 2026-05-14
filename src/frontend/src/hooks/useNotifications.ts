@@ -10,6 +10,7 @@ export interface Notification {
   body: string;
   createdAt: number;
   read: boolean;
+  senderPrincipal?: string; // để click vào mở đúng chat
 }
 
 export function useNotifications(isLoggedIn: boolean, callerPrincipal: string) {
@@ -21,40 +22,27 @@ export function useNotifications(isLoggedIn: boolean, callerPrincipal: string) {
   useEffect(() => {
     if (!isLoggedIn || !user?.principal) return;
 
-    // Listen realtime to all messages where I'm a participant
     const q = query(
       collection(db, "messages"),
       where("participants", "array-contains", user.principal),
     );
 
     const unsub = onSnapshot(q, (snap) => {
-      // First snapshot: just record existing IDs, don't notify
       if (!initializedRef.current) {
-        for (const d of snap.docs) {
-          prevMessageIds.current.add(d.id);
-        }
+        for (const d of snap.docs) prevMessageIds.current.add(d.id);
         initializedRef.current = true;
         return;
       }
 
-      // Subsequent snapshots: notify for new incoming messages
       for (const change of snap.docChanges()) {
         if (change.type !== "added") continue;
-        const data = change.doc.data() as {
-          from: string; to: string; text: string;
-        };
+        const data = change.doc.data() as { from: string; to: string; text: string };
         const docId = change.doc.id;
-
-        // Only notify for messages FROM others TO me
         if (data.from === user.principal) continue;
         if (prevMessageIds.current.has(docId)) continue;
-
         prevMessageIds.current.add(docId);
 
-        const preview = data.text.length > 60
-          ? `${data.text.slice(0, 60)}...`
-          : data.text;
-
+        const preview = data.text.length > 60 ? `${data.text.slice(0, 60)}...` : data.text;
         setNotifications((prev) => [
           {
             id: `msg-${docId}`,
@@ -63,6 +51,7 @@ export function useNotifications(isLoggedIn: boolean, callerPrincipal: string) {
             body: preview,
             createdAt: Date.now(),
             read: false,
+            senderPrincipal: data.from,
           },
           ...prev,
         ]);
@@ -82,5 +71,9 @@ export function useNotifications(isLoggedIn: boolean, callerPrincipal: string) {
     setNotifications([]);
   }
 
-  return { notifications, unreadCount, markAllRead, clearAll };
+  function markOneRead(id: string) {
+    setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
+  }
+
+  return { notifications, unreadCount, markAllRead, clearAll, markOneRead };
 }
