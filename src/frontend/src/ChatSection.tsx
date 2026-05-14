@@ -31,9 +31,17 @@ function getInitials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || "?";
 }
 
-function formatTime(ts: string | number) {
+function formatTime(ts: unknown) {
   try {
-    const d = new Date(typeof ts === "string" ? Number(ts) : ts);
+    let ms: number;
+    if (ts && typeof ts === "object" && "toMillis" in ts) {
+      ms = (ts as { toMillis: () => number }).toMillis();
+    } else if (typeof ts === "string" || typeof ts === "number") {
+      ms = Number(ts);
+    } else {
+      return "";
+    }
+    const d = new Date(ms);
     return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
   } catch {
     return "";
@@ -191,7 +199,7 @@ export function ChatSection({
   }
 
   const typedMessages = messages as Array<{
-    id: string; from: string; to: string; text: string; createdAt: string;
+    id: string; from: string; to: string; text: string; createdAt: unknown;
   }>;
 
   const myLastMsgIdx = (() => {
@@ -308,7 +316,14 @@ export function ChatSection({
                     const showTime =
                       !prevMsg ||
                       prevMsg.from !== msg.from ||
-                      Math.abs(Number(msg.createdAt) - Number(prevMsg.createdAt)) > 60_000;
+                      (() => {
+                        const getMs = (ts: unknown) => {
+                          if (ts && typeof ts === "object" && "toMillis" in ts)
+                            return (ts as { toMillis: () => number }).toMillis();
+                          return Number(ts);
+                        };
+                        return Math.abs(getMs(msg.createdAt) - getMs(prevMsg.createdAt)) > 60_000;
+                      })();
 
                     return (
                       <div
