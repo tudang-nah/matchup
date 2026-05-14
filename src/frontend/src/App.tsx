@@ -1377,9 +1377,17 @@ function SportDetailModal({
 function HeroSection({
   onSearch,
   onCreateMatch,
+  filterTime,
+  filterSlots,
+  onFilterTime,
+  onFilterSlots,
 }: {
   onSearch: (sport: string, location: string) => void;
   onCreateMatch: (sport: string) => void;
+  filterTime: string;
+  filterSlots: boolean;
+  onFilterTime: (v: string) => void;
+  onFilterSlots: (v: boolean) => void;
 }) {
   const [sport, setSport] = useState("all");
   const [location, setLocation] = useState("");
@@ -1509,6 +1517,46 @@ function HeroSection({
             >
               <Search className="w-4 h-4 mr-2" /> Tìm ngay
             </Button>
+          </div>
+
+          {/* Time + slots filters */}
+          <div className="flex flex-wrap gap-2 mt-4 items-center">
+            {[
+              { value: "all", label: "⏰ Tất cả" },
+              { value: "today", label: "📅 Hôm nay" },
+              { value: "weekend", label: "🎉 Cuối tuần" },
+              { value: "week", label: "📆 Tuần này" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  onFilterTime(opt.value);
+                  document.getElementById("matches")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
+                  filterTime === opt.value
+                    ? "bg-white text-black"
+                    : "bg-white/15 text-white/80 hover:bg-white/25"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                onFilterSlots(!filterSlots);
+                document.getElementById("matches")?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
+                filterSlots
+                  ? "bg-green-400 text-black"
+                  : "bg-white/15 text-white/80 hover:bg-white/25"
+              }`}
+            >
+              ✅ Còn chỗ
+            </button>
           </div>
         </motion.div>
       </div>
@@ -3202,12 +3250,16 @@ function FindPlayersSection({
 function LiveMatchesSection({
   filterSport,
   filterLocation,
+  filterTime,
+  filterSlots,
   isLoggedIn,
   currentPrincipal,
   profiles,
 }: {
   filterSport: string;
   filterLocation: string;
+  filterTime: string;
+  filterSlots: boolean;
   isLoggedIn: boolean;
   currentPrincipal?: string;
   profiles?: ProfileEntry[];
@@ -3237,7 +3289,26 @@ function LiveMatchesSection({
       const matchLoc =
         !filterLocation ||
         m.location.toLowerCase().includes(filterLocation.toLowerCase());
-      return notExpired && matchSport && matchLoc;
+
+      // Time filter
+      let matchTimeFilter = true;
+      if (filterTime === "today") {
+        const start = new Date(); start.setHours(0,0,0,0);
+        const end = new Date(); end.setHours(23,59,59,999);
+        matchTimeFilter = matchTime >= start && matchTime <= end;
+      } else if (filterTime === "weekend") {
+        const day = matchTime.getDay();
+        matchTimeFilter = day === 0 || day === 6;
+      } else if (filterTime === "week") {
+        const weekEnd = new Date();
+        weekEnd.setDate(weekEnd.getDate() + 7);
+        matchTimeFilter = matchTime <= weekEnd;
+      }
+
+      // Slots filter
+      const hasSlots = !filterSlots || Number(m.missing) > 0;
+
+      return notExpired && matchSport && matchLoc && matchTimeFilter && hasSlots;
     })
     .sort((a, b) => {
       const ta = new Date(a.time).getTime();
@@ -4880,6 +4951,8 @@ function MobileStickyBar({ onCreateClick }: { onCreateClick: () => void }) {
 export default function App() {
   const [filterSport, setFilterSport] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
+  const [filterTime, setFilterTime] = useState("all");
+  const [filterSlots, setFilterSlots] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [preSelectedSport, setPreSelectedSport] = useState<string | null>(null);
@@ -4949,6 +5022,8 @@ export default function App() {
   function handleSearch(sport: string, location: string) {
     setFilterSport(sport);
     setFilterLocation(location);
+    setFilterTime("all");
+    setFilterSlots(false);
   }
 
   function scrollToCreate() {
@@ -5046,6 +5121,8 @@ export default function App() {
         <LiveMatchesSection
           filterSport={filterSport}
           filterLocation={filterLocation}
+          filterTime={filterTime}
+          filterSlots={filterSlots}
           isLoggedIn={isLoggedIn}
           currentPrincipal={callerPrincipal}
           profiles={allProfiles as ProfileEntry[]}
