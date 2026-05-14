@@ -58,10 +58,12 @@ export function ChatSection({
   identity,
   openWithPrincipal,
   onOpenHandled,
+  unreadSenders = new Set(),
 }: {
   identity: { getPrincipal: () => { toString: () => string } };
   openWithPrincipal?: string | null;
   onOpenHandled?: () => void;
+  unreadSenders?: Set<string>;
 }) {
   const { user } = useLocalAuth();
   const callerPrincipal = user?.principal ?? identity.getPrincipal().toString();
@@ -277,7 +279,14 @@ export function ChatSection({
                         {getInitials(c.name)}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-sm font-medium truncate text-foreground">{c.name}</span>
+                    <span className={`text-sm truncate flex-1 ${unreadSenders.has(c.principal) && !isSelected ? "font-bold text-foreground" : "font-medium text-foreground"}`}>
+                      {c.name}
+                    </span>
+                    {unreadSenders.has(c.principal) && !isSelected && (
+                      <span className="ml-auto flex-shrink-0 min-w-[20px] h-5 rounded-full bg-red-500 text-white text-[11px] font-semibold flex items-center justify-center px-1.5">
+                        new
+                      </span>
+                    )}
                   </button>
                 );
               })
