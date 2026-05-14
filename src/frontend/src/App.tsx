@@ -4910,7 +4910,6 @@ export default function App() {
                 identity={fakeIdentity as any}
                 openWithPrincipal={openChatWith}
                 onOpenHandled={() => setOpenChatWith(null)}
-                unreadSenders={unreadSenders}
               />
             </div>
           </>
