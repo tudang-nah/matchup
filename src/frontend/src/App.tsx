@@ -620,11 +620,13 @@ function ProfileSheet({
   onOpenChange,
   isLoggedIn,
   onLoginRequest,
+  user,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isLoggedIn: boolean;
   onLoginRequest: () => void;
+  user: { principal: string; displayName: string } | null;
 }) {
   const { data: profile, isLoading } = useGetMyProfile(isLoggedIn);
   const updateMutation = useUpdateMyProfile();
@@ -817,8 +819,7 @@ function ProfileSheet({
                     size="sm"
                     className="text-xs px-3"
                     onClick={() => {
-                      const seed =
-                        form.name.trim() || Math.random().toString(36).slice(2);
+                      const seed = (form.name.trim() || Math.random().toString(36).slice(2)) + Date.now();
                       const url = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
                       setForm((prev) => ({ ...prev, avatarUrl: url }));
                     }}
@@ -4902,6 +4903,7 @@ export default function App() {
         onOpenChange={setProfileOpen}
         isLoggedIn={isLoggedIn}
         onLoginRequest={() => setAuthModalOpen(true)}
+        user={user}
       />
       <motion.main
         className="flex-1"
