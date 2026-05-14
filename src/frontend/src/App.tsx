@@ -58,6 +58,7 @@ import {
   WifiOff,
   X,
   Zap,
+  Share2,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
@@ -1865,6 +1866,22 @@ function MatchDetailModal({
     }
   }
 
+  async function handleShare() {
+    const url = `${window.location.origin}?match=${match!.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: match!.title,
+          text: `Tham gia trận ${match!.sport} cùng mình! 🏃`,
+          url,
+        });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast.success("Đã sao chép link trận! 🔗");
+    }
+  }
+
   async function handleDelete() {
     try {
       await deleteMutation.mutateAsync(match!.id);
@@ -2301,6 +2318,16 @@ function MatchDetailModal({
               )}
             </Button>
           )}
+
+          {/* Share button */}
+          <Button
+            variant="outline"
+            onClick={handleShare}
+            className="h-11 px-4 rounded-full border-primary/40 text-primary hover:bg-primary/10"
+            title="Chia sẻ trận"
+          >
+            <Share2 className="w-4 h-4 mr-1.5" /> Chia sẻ
+          </Button>
 
           {/* QR Check-in: creator sees QR code button, participants see scanner */}
           {isLoggedIn && isCreator && (
@@ -4863,6 +4890,24 @@ export default function App() {
   const auth = useLocalAuth();
   const { isLoggedIn, user, logout } = auth;
   const callerPrincipal = user?.principal ?? "";
+
+  // Deep link: open match from ?match=ID URL param
+  const [deepLinkMatchId] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("match");
+  });
+  const [deepLinkMatch, setDeepLinkMatch] = useState<Match | null>(null);
+  const [deepLinkOpen, setDeepLinkOpen] = useState(false);
+  const { data: allMatchesForDeepLink } = useGetAllMatches();
+  useEffect(() => {
+    if (!deepLinkMatchId || !allMatchesForDeepLink) return;
+    const found = (allMatchesForDeepLink as Match[]).find((m) => m.id === deepLinkMatchId);
+    if (found) {
+      setDeepLinkMatch(found);
+      setDeepLinkOpen(true);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [deepLinkMatchId, allMatchesForDeepLink]);
 
   // Fetch all profiles at app level
   const { data: allProfiles = [] } = useGetAllProfiles(isLoggedIn);
