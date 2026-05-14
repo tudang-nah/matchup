@@ -63,17 +63,32 @@ export function useNotifications(isLoggedIn: boolean, callerPrincipal: string) {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  function markAllRead() {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }
-
   function clearAll() {
     setNotifications([]);
   }
 
   function markOneRead(id: string) {
     setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
+    // Tự động xóa notification sau khi đã đọc (delay 1.5s cho UX mượt)
+    setTimeout(() => {
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    }, 1500);
   }
 
-  return { notifications, unreadCount, markAllRead, clearAll, markOneRead };
+  function markAllRead() {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    // Tự xóa tất cả sau 1.5s
+    setTimeout(() => {
+      setNotifications([]);
+    }, 1500);
+  }
+
+  // Danh sách principal của người gửi có tin nhắn chưa đọc (dùng để hiện badge trên tab chat)
+  const unreadSenders = new Set(
+    notifications
+      .filter((n) => !n.read && n.senderPrincipal)
+      .map((n) => n.senderPrincipal as string)
+  );
+
+  return { notifications, unreadCount, markAllRead, clearAll, markOneRead, unreadSenders };
 }
