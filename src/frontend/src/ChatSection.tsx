@@ -143,7 +143,24 @@ export function ChatSection({
       }));
   }, [search, allProfiles, callerPrincipal]);
 
-  const displayContacts = search.trim() ? searchResults : contacts;
+  // Merge unreadSenders vào contacts nếu họ chưa có trong list
+  const mergedContacts = (() => {
+    const existing = new Set(contacts.map((c) => c.principal));
+    const extras: Contact[] = [];
+    for (const principal of unreadSenders) {
+      if (!existing.has(principal)) {
+        const profile = profileMap.get(principal);
+        extras.push({
+          principal,
+          name: profile?.name || principal.slice(0, 8) + "...",
+          avatarUrl: profile?.avatarUrl || "",
+        });
+      }
+    }
+    return [...extras, ...contacts];
+  })();
+
+  const displayContacts = search.trim() ? searchResults : mergedContacts;
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
