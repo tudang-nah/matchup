@@ -2081,6 +2081,9 @@ function MatchDetailModal({
       <DialogContent
         className="max-w-lg max-h-[90vh] overflow-y-auto"
         data-ocid="match_detail.dialog"
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.stopPropagation();
+        }}
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-xl font-bold">
