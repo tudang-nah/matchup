@@ -468,7 +468,12 @@ export function useGetRatingsForPlayer(ratedPrincipal: unknown, enabled: boolean
 export function useGetHotNews() {
   return useQuery<NewsItem[]>({
     queryKey: ["hotNews"],
-    queryFn: (): NewsItem[] => [],
-    staleTime: 30 * 60 * 1000,
+    queryFn: async (): Promise<NewsItem[]> => {
+      const res = await fetch("/api/news");
+      if (!res.ok) throw new Error("Không lấy được tin tức");
+      return res.json();
+    },
+    staleTime: 10 * 60 * 1000,
+    retry: 2,
   });
 }
