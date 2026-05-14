@@ -629,6 +629,7 @@ function ProfileSheet({
   const { data: profile, isLoading } = useGetMyProfile(isLoggedIn);
   const updateMutation = useUpdateMyProfile();
   const [isEditing, setIsEditing] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [form, setForm] = useState({
     name: "",
     bio: "",
@@ -775,48 +776,66 @@ function ProfileSheet({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="profile-avatar" className="font-semibold text-sm">
-                Ảnh đại diện
-              </Label>
+              <Label className="font-semibold text-sm">Ảnh đại diện</Label>
               <div className="flex gap-2 items-center">
-                <Input
-                  id="profile-avatar"
-                  data-ocid="profile.avatar_input"
-                  placeholder="Nhập URL ảnh hoặc tạo tự động..."
-                  value={form.avatarUrl}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, avatarUrl: e.target.value }))
-                  }
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0 text-xs px-3"
-                  onClick={() => {
-                    const seed =
-                      form.name.trim() || Math.random().toString(36).slice(2);
-                    const url = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
-                    setForm((prev) => ({ ...prev, avatarUrl: url }));
-                  }}
-                >
-                  🎲 Tạo tự động
-                </Button>
+                <div className="flex-1 flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs px-3"
+                    onClick={() => document.getElementById("avatar-upload-input")?.click()}
+                    disabled={avatarUploading}
+                  >
+                    {avatarUploading ? "Đang tải..." : "📷 Upload ảnh"}
+                  </Button>
+                  <input
+                    id="avatar-upload-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file || !user) return;
+                      setAvatarUploading(true);
+                      try {
+                        const storageRef = ref(storage, `avatars/${user.principal}`);
+                        await uploadBytes(storageRef, file);
+                        const url = await getDownloadURL(storageRef);
+                        setForm((prev) => ({ ...prev, avatarUrl: url }));
+                      } catch {
+                        toast.error("Upload ảnh thất bại");
+                      } finally {
+                        setAvatarUploading(false);
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs px-3"
+                    onClick={() => {
+                      const seed =
+                        form.name.trim() || Math.random().toString(36).slice(2);
+                      const url = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+                      setForm((prev) => ({ ...prev, avatarUrl: url }));
+                    }}
+                  >
+                    🎲 Tạo tự động
+                  </Button>
+                </div>
+                {form.avatarUrl && (
+                  <img
+                    src={form.avatarUrl}
+                    alt="preview"
+                    className="w-12 h-12 rounded-full object-cover border border-border shrink-0"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    onLoad={(e) => { (e.target as HTMLImageElement).style.display = "block"; }}
+                  />
+                )}
               </div>
-              {form.avatarUrl && (
-                <img
-                  src={form.avatarUrl}
-                  alt="preview"
-                  className="w-16 h-16 rounded-full object-cover border border-border mt-1"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                  onLoad={(e) => {
-                    (e.target as HTMLImageElement).style.display = "block";
-                  }}
-                />
-              )}
             </div>
 
             <div className="space-y-2">
