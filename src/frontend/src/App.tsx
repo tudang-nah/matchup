@@ -3908,6 +3908,26 @@ function RankingSection({
   profiles,
 }: { isLoggedIn: boolean; profiles?: ProfileEntry[] }) {
   const { data: rankings = [], isLoading } = useGetAllRankings(isLoggedIn);
+  const ratePlayerMutation = useRatePlayer();
+  const { user } = useLocalAuth();
+  const [hoverRating, setHoverRating] = useState<Record<string, number>>({});
+  const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
+
+  async function handleQuickRate(principal: string, score: number) {
+    if (!isLoggedIn || submitted[principal]) return;
+    try {
+      await ratePlayerMutation.mutateAsync({
+        ratedPrincipal: principal,
+        matchId: "direct_vote",
+        score,
+        comment: "",
+      });
+      setSubmitted((prev) => ({ ...prev, [principal]: true }));
+      toast.success("Đã đánh giá!");
+    } catch {
+      toast.error("Không thể đánh giá.");
+    }
+  }
 
   const hasData = rankings.length > 0;
 
@@ -4034,27 +4054,49 @@ function RankingSection({
                     </div>
                   </div>
 
-                  {/* Rating */}
-                  <div className="shrink-0 flex flex-col items-end gap-0.5">
+                  {/* Rating + Vote */}
+                  <div className="shrink-0 flex flex-col items-end gap-1">
+                    {/* Avg rating display */}
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <Star
                           key={s}
                           className="w-3 h-3"
-                          fill={
-                            s <= Math.round(rank.avgRating) ? "#eab308" : "none"
-                          }
-                          stroke={
-                            s <= Math.round(rank.avgRating)
-                              ? "#eab308"
-                              : "currentColor"
-                          }
+                          fill={s <= Math.round(rank.avgRating) ? "#eab308" : "none"}
+                          stroke={s <= Math.round(rank.avgRating) ? "#eab308" : "currentColor"}
                         />
                       ))}
+                      <span className="text-xs text-muted-foreground ml-1">
+                        {rank.avgRating.toFixed(1)} ({rank.totalRatings.toString()})
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {rank.avgRating.toFixed(1)} ({rank.totalRatings})
-                    </span>
+                    {/* Vote inline — chỉ hiện khi đã login và không phải chính mình */}
+                    {isLoggedIn && rank.userPrincipal.toString() !== user?.principal && (
+                      submitted[rank.userPrincipal.toString()] ? (
+                        <span className="text-[11px] text-green-600 dark:text-green-400 font-medium">✓ Đã vote</span>
+                      ) : (
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onMouseEnter={() => setHoverRating((prev) => ({ ...prev, [rank.userPrincipal.toString()]: s }))}
+                              onMouseLeave={() => setHoverRating((prev) => ({ ...prev, [rank.userPrincipal.toString()]: 0 }))}
+                              onClick={() => handleQuickRate(rank.userPrincipal.toString(), s)}
+                              disabled={ratePlayerMutation.isPending}
+                              className="transition-transform hover:scale-125 cursor-pointer disabled:opacity-50"
+                              aria-label={`Vote ${s} sao`}
+                            >
+                              <Star
+                                className="w-3.5 h-3.5"
+                                fill={s <= (hoverRating[rank.userPrincipal.toString()] ?? 0) ? "#eab308" : "none"}
+                                stroke={s <= (hoverRating[rank.userPrincipal.toString()] ?? 0) ? "#eab308" : "currentColor"}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      )
+                    )}
                   </div>
                 </motion.div>
               );
