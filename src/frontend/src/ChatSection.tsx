@@ -56,7 +56,13 @@ interface Contact {
 
 export function ChatSection({
   identity,
-}: { identity: { getPrincipal: () => { toString: () => string } } }) {
+  openWithPrincipal,
+  onOpenHandled,
+}: {
+  identity: { getPrincipal: () => { toString: () => string } };
+  openWithPrincipal?: string | null;
+  onOpenHandled?: () => void;
+}) {
   const { user } = useLocalAuth();
   const callerPrincipal = user?.principal ?? identity.getPrincipal().toString();
 
@@ -138,6 +144,18 @@ export function ChatSection({
   const displayContacts = search.trim() ? searchResults : contacts;
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+
+  // Tự mở chat khi click thông báo
+  useEffect(() => {
+    if (!openWithPrincipal) return;
+    const profile = profileMap.get(openWithPrincipal);
+    setSelectedContact({
+      principal: openWithPrincipal,
+      name: profile?.name || openWithPrincipal.slice(0, 8) + "...",
+      avatarUrl: profile?.avatarUrl || "",
+    });
+    onOpenHandled?.();
+  }, [openWithPrincipal]);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
