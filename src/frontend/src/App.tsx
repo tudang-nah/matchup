@@ -4798,7 +4798,7 @@ export default function App() {
   // Fetch all profiles at app level
   const { data: allProfiles = [] } = useGetAllProfiles(isLoggedIn);
 
-  const { notifications, unreadCount, markAllRead, clearAll, markOneRead } =
+  const { notifications, unreadCount, markAllRead, clearAll, markOneRead, unreadSenders } =
     useNotifications(isLoggedIn, callerPrincipal);
 
   const [openChatWith, setOpenChatWith] = useState<string | null>(null);
@@ -4910,6 +4910,7 @@ export default function App() {
                 identity={fakeIdentity as any}
                 openWithPrincipal={openChatWith}
                 onOpenHandled={() => setOpenChatWith(null)}
+                unreadSenders={unreadSenders}
               />
             </div>
           </>
