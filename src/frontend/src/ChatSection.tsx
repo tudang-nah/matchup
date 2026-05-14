@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "./firebase";
 import { useGetMessages, useSendMessage, useGetAllProfiles } from "./hooks/useQueries";
+import { useUnreadContacts, markAsRead } from "./hooks/useUnreadContacts";
 import { useLocalAuth } from "./hooks/useLocalAuth";
 import type { Message } from "./types";
 
@@ -58,17 +59,18 @@ export function ChatSection({
   identity,
   openWithPrincipal,
   onOpenHandled,
-  unreadSenders = new Set(),
 }: {
   identity: { getPrincipal: () => { toString: () => string } };
   openWithPrincipal?: string | null;
   onOpenHandled?: () => void;
-  unreadSenders?: Set<string>;
 }) {
   const { user } = useLocalAuth();
   const callerPrincipal = user?.principal ?? identity.getPrincipal().toString();
 
   const { data: allProfiles = [] } = useGetAllProfiles(true);
+
+  // Unread từ Firebase thực tế (không phụ thuộc vào notification runtime)
+  const { unreadSenders, senderInfo } = useUnreadContacts();
 
   // Contacts = people who share a match with me
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -143,12 +145,12 @@ export function ChatSection({
       }));
   }, [search, allProfiles, callerPrincipal]);
 
-  // Merge unreadSenders vào contacts nếu họ chưa có trong list
+  // Merge người có tin chưa đọc vào contacts (kể cả chưa cùng trận)
   const mergedContacts = (() => {
     const existing = new Set(contacts.map((c) => c.principal));
     const extras: Contact[] = [];
-    for (const principal of unreadSenders) {
-      if (!existing.has(principal)) {
+    for (const [principal] of senderInfo) {
+      if (!existing.has(principal) && unreadSenders.has(principal)) {
         const profile = profileMap.get(principal);
         extras.push({
           principal,
@@ -173,6 +175,7 @@ export function ChatSection({
       name: profile?.name || openWithPrincipal.slice(0, 8) + "...",
       avatarUrl: profile?.avatarUrl || "",
     });
+    markAsRead(callerPrincipal, openWithPrincipal);
     onOpenHandled?.();
   }, [openWithPrincipal]);
   const [text, setText] = useState("");
@@ -285,7 +288,7 @@ export function ChatSection({
                   <button
                     type="button"
                     key={c.principal}
-                    onClick={() => { setSelectedContact(c); setSearch(""); }}
+                    onClick={() => { setSelectedContact(c); setSearch(""); markAsRead(callerPrincipal, c.principal); }}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/60 transition-colors ${
                       isSelected ? "bg-primary/10 border-r-2 border-primary" : ""
                     }`}
