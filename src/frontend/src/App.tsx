@@ -631,7 +631,6 @@ function ProfileSheet({
   const { data: profile, isLoading } = useGetMyProfile(isLoggedIn);
   const updateMutation = useUpdateMyProfile();
   const [isEditing, setIsEditing] = useState(false);
-  const [avatarUploading, setAvatarUploading] = useState(false);
   const [form, setForm] = useState({
     name: "",
     bio: "",
@@ -781,38 +780,6 @@ function ProfileSheet({
               <Label className="font-semibold text-sm">Ảnh đại diện</Label>
               <div className="flex gap-2 items-center">
                 <div className="flex-1 flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="text-xs px-3"
-                    onClick={() => document.getElementById("avatar-upload-input")?.click()}
-                    disabled={avatarUploading}
-                  >
-                    {avatarUploading ? "Đang tải..." : "📷 Upload ảnh"}
-                  </Button>
-                  <input
-                    id="avatar-upload-input"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file || !user) return;
-                      setAvatarUploading(true);
-                      try {
-                        const storageRef = ref(storage, `avatars/${user.principal}`);
-                        await uploadBytes(storageRef, file);
-                        const url = await getDownloadURL(storageRef);
-                        setForm((prev) => ({ ...prev, avatarUrl: url }));
-                      } catch {
-                        toast.error("Upload ảnh thất bại");
-                      } finally {
-                        setAvatarUploading(false);
-                        e.target.value = "";
-                      }
-                    }}
-                  />
                   <Button
                     type="button"
                     variant="outline"
