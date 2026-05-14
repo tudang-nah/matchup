@@ -1085,6 +1085,9 @@ function NotificationBell({
 function Header({
   onCreateClick,
   onProfileClick,
+  onChatClick,
+  onRankingClick,
+  onHotNewsClick,
   isDark,
   toggleDark,
   notifications,
@@ -1099,6 +1102,9 @@ function Header({
 }: {
   onCreateClick: () => void;
   onProfileClick: () => void;
+  onChatClick: () => void;
+  onRankingClick: () => void;
+  onHotNewsClick: () => void;
   isDark: boolean;
   toggleDark: () => void;
   notifications: Notification[];
@@ -1141,6 +1147,27 @@ function Header({
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-full cursor-pointer"
             >
               Tạo trận
+            </button>
+            <button
+              type="button"
+              onClick={onChatClick}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-full cursor-pointer"
+            >
+              Tin nhắn
+            </button>
+            <button
+              type="button"
+              onClick={onRankingClick}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-full cursor-pointer"
+            >
+              Xếp hạng
+            </button>
+            <button
+              type="button"
+              onClick={onHotNewsClick}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-full cursor-pointer"
+            >
+              Hot News
             </button>
           </nav>
 
@@ -4841,6 +4868,18 @@ export default function App() {
     createSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   }
 
+  function scrollToChat() {
+    document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  function scrollToRanking() {
+    document.getElementById("ranking")?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  function scrollToHotNews() {
+    document.getElementById("hotnews")?.scrollIntoView({ behavior: "smooth" });
+  }
+
   function handleCreateMatchFromSport(sport: string) {
     setPreSelectedSport(sport);
     setTimeout(() => {
@@ -4870,6 +4909,9 @@ export default function App() {
         unreadCount={unreadCount}
         markAllRead={markAllRead}
         clearAll={clearAll}
+        onChatClick={scrollToChat}
+        onRankingClick={scrollToRanking}
+        onHotNewsClick={scrollToHotNews}
         onNotificationClick={(n) => {
           markOneRead(n.id);
           if (n.senderPrincipal) {
@@ -4905,7 +4947,7 @@ export default function App() {
           <>
             <TodayMatchesSection isLoggedIn={isLoggedIn} />
             <FindPlayersSection callerPrincipal={callerPrincipal} />
-            <div ref={chatSectionRef}>
+            <div ref={chatSectionRef} id="chat">
               <ChatSection
                 identity={fakeIdentity as any}
                 openWithPrincipal={openChatWith}
@@ -4921,10 +4963,12 @@ export default function App() {
           currentPrincipal={callerPrincipal}
           profiles={allProfiles as ProfileEntry[]}
         />
-        <RankingSection
-          isLoggedIn={isLoggedIn}
-          profiles={allProfiles as ProfileEntry[]}
-        />
+        <div id="ranking">
+          <RankingSection
+            isLoggedIn={isLoggedIn}
+            profiles={allProfiles as ProfileEntry[]}
+          />
+        </div>
         <CreateMatchSection
           sectionRef={createSectionRef}
           preSelectedSport={preSelectedSport}
@@ -4932,7 +4976,9 @@ export default function App() {
           isLoggedIn={isLoggedIn}
           onLoginRequest={() => setAuthModalOpen(true)}
         />
-        <HotNewsSection />
+        <div id="hotnews">
+          <HotNewsSection />
+        </div>
       </motion.main>
       <Footer />
       <MobileStickyBar onCreateClick={scrollToCreate} />
