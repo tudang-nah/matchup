@@ -465,6 +465,51 @@ export function useGetRatingsForPlayer(ratedPrincipal: unknown, enabled: boolean
   });
 }
 
+// ---- Comments ----
+
+export function useGetMatchComments(matchId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["comments", matchId],
+    queryFn: async () => {
+      if (!matchId) return [];
+      const snap = await getDocs(
+        query(
+          collection(db, "comments"),
+          where("matchId", "==", matchId),
+          orderBy("createdAt")
+        )
+      );
+      return snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+        createdAt: (d.data().createdAt as Timestamp)?.toMillis() ?? Date.now(),
+      }));
+    },
+    enabled: enabled && !!matchId,
+    refetchInterval: 5000,
+  });
+}
+
+export function useAddComment() {
+  const { user } = useLocalAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ matchId, text }: { matchId: string; text: string }) => {
+      if (!user) throw new Error("Chưa đăng nhập");
+      await addDoc(collection(db, "comments"), {
+        matchId,
+        text,
+        authorPrincipal: user.principal,
+        authorName: user.displayName,
+        createdAt: serverTimestamp(),
+      });
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["comments", vars.matchId] });
+    },
+  });
+}
+
 export function useGetHotNews() {
   return useQuery<NewsItem[]>({
     queryKey: ["hotNews"],
