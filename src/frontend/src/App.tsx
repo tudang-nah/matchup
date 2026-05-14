@@ -1410,7 +1410,7 @@ function HeroSection({
   }
 
   return (
-    <section className="hero-gradient relative overflow-hidden">
+    <section className="hero-gradient relative">
       <div
         className="absolute inset-0 opacity-10"
         style={{
@@ -1521,7 +1521,11 @@ function HeroSection({
               <SelectTrigger className="bg-white/10 border-white/20 text-white flex-1 min-h-[48px]">
                 <SelectValue placeholder="Chọn quận/huyện..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                position="popper"
+                sideOffset={8}
+                className="z-[9999] max-h-60 overflow-y-auto"
+              >
                 <SelectItem value="all">📍 Tất cả khu vực</SelectItem>
                 {DISTRICTS.map((d) => (
                   <SelectItem key={d} value={d}>{d}</SelectItem>
