@@ -1887,15 +1887,37 @@ function MatchDetailModal({
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [commentText, setCommentText] = useState("");
-  const { data: comments = [] } = useGetMatchComments(match?.id ?? "", open && !!match);
+  const [optimisticComments, setOptimisticComments] = useState<Array<{id: string; authorName: string; authorPrincipal: string; text: string; createdAt: number}>>([]);
+  const { data: serverComments = [] } = useGetMatchComments(match?.id ?? "", open && !!match);
   const addCommentMutation = useAddComment();
+
+  // Reset optimistic when modal closes or server catches up
+  const comments = [
+    ...(serverComments as Array<{id: string; authorName: string; authorPrincipal: string; text: string; createdAt: number}>),
+    ...optimisticComments.filter(
+      (o) => !(serverComments as Array<{id: string}>).some((s) => s.id === o.id)
+    ),
+  ].sort((a, b) => a.createdAt - b.createdAt);
 
   async function handleAddComment() {
     if (!commentText.trim() || !match) return;
+    const text = commentText.trim();
+    const tempId = `optimistic_${Date.now()}`;
+    setCommentText("");
+    // Show immediately
+    setOptimisticComments((prev) => [...prev, {
+      id: tempId,
+      authorName: user?.displayName ?? "Bạn",
+      authorPrincipal: user?.principal ?? "",
+      text,
+      createdAt: Date.now(),
+    }]);
     try {
-      await addCommentMutation.mutateAsync({ matchId: match.id, text: commentText.trim() });
-      setCommentText("");
+      await addCommentMutation.mutateAsync({ matchId: match.id, text });
+      // Remove optimistic after server confirms
+      setOptimisticComments((prev) => prev.filter((c) => c.id !== tempId));
     } catch {
+      setOptimisticComments((prev) => prev.filter((c) => c.id !== tempId));
       toast.error("Không thể gửi bình luận");
     }
   }
