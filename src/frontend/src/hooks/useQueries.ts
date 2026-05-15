@@ -427,8 +427,19 @@ export function useGetAllRankings(isLoggedIn: boolean) {
       });
 
       return ranks.sort((a, b) => {
-        const scoreA = Number(a.totalMatches) * 10 + a.avgRating * 5;
-        const scoreB = Number(b.totalMatches) * 10 + b.avgRating * 5;
+        // Cân bằng: rating 60% + số trận 40%
+        // Normalize rating về 0-100 (max 5 sao), số trận về 0-100 (cap 20 trận)
+        const maxMatches = 20;
+        const ratingA = (a.avgRating / 5) * 100 * 0.6;
+        const matchA = (Math.min(Number(a.totalMatches), maxMatches) / maxMatches) * 100 * 0.4;
+        const ratingB = (b.avgRating / 5) * 100 * 0.6;
+        const matchB = (Math.min(Number(b.totalMatches), maxMatches) / maxMatches) * 100 * 0.4;
+        const scoreA = ratingA + matchA;
+        const scoreB = ratingB + matchB;
+        // Nếu bằng điểm, ưu tiên người có nhiều lượt đánh giá hơn
+        if (Math.abs(scoreA - scoreB) < 0.01) {
+          return Number(b.totalRatings) - Number(a.totalRatings);
+        }
         return scoreB - scoreA;
       });
     },
