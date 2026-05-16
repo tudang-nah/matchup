@@ -1,12 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useLang } from "./hooks/useLang";
-import type { translations } from "./lang";
-
-type T = typeof translations.vi;
-const LangContext = createContext<T>({} as T);
-const useLangT = () => useContext(LangContext);
 import {
   Dialog,
   DialogContent,
@@ -67,7 +61,7 @@ import {
   Share2,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChatSection } from "./ChatSection";
 import { useMatchReminders } from "./hooks/useMatchReminders";
@@ -1149,7 +1143,6 @@ function ProfileSheet({
   onLoginRequest: () => void;
   user: { principal: string; displayName: string } | null;
 }) {
-  const t = useLangT();
   const { data: profile, isLoading } = useGetMyProfile(isLoggedIn);
   const updateMutation = useUpdateMyProfile();
   const [isEditing, setIsEditing] = useState(false);
@@ -1189,7 +1182,7 @@ function ProfileSheet({
   async function handleSave() {
     // 1. Auth guard
     if (!isLoggedIn) {
-      toast.error(t.needLoginSave);
+      toast.error("Vui lòng đăng nhập để lưu hồ sơ.");
       onLoginRequest();
       return;
     }
@@ -1219,7 +1212,7 @@ function ProfileSheet({
         throw new Error(errMsg);
       }
 
-      toast.success(t.saveSuccess);
+      toast.success("Đã lưu hồ sơ thành công!");
       setIsEditing(false);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -1227,7 +1220,7 @@ function ProfileSheet({
     }
   }
 
-  const displayName = profile?.name || t.noName;
+  const displayName = profile?.name || "Chưa có tên";
   const initials = displayName
     .split(" ")
     .slice(0, 2)
@@ -1288,7 +1281,7 @@ function ProfileSheet({
               <Textarea
                 id="profile-bio"
                 data-ocid="profile.textarea"
-                placeholder={t.shortBio}
+                placeholder="Mô tả ngắn về bản thân..."
                 value={form.bio}
                 onChange={(e) =>
                   setForm((prev) => ({ ...prev, bio: e.target.value }))
@@ -1496,7 +1489,7 @@ function NotificationBell({
 
   function formatTime(ts: number) {
     const diff = Date.now() - ts;
-    if (diff < 60000) return t.justNow;
+    if (diff < 60000) return "Vừa xong";
     if (diff < 3600000) return `${Math.floor(diff / 60000)} phút trước`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)} giờ trước`;
     return new Date(ts).toLocaleDateString("vi-VN");
@@ -1510,7 +1503,7 @@ function NotificationBell({
         onClick={() => setOpen((v) => !v)}
         data-ocid="header.notification_button"
         className="rounded-full cursor-pointer transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] relative"
-        aria-label={t.notifications}
+        aria-label="Thông báo"
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
@@ -1533,7 +1526,7 @@ function NotificationBell({
             className="absolute right-0 top-full mt-2 z-50 min-w-72 w-80 rounded-xl border border-border bg-popover shadow-2xl overflow-hidden"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <span className="font-semibold text-sm">{t.notifications}</span>
+              <span className="font-semibold text-sm">Thông báo</span>
               <div className="flex gap-2">
                 {notifications.length > 0 && (
                   <>
@@ -1621,8 +1614,6 @@ function Header({
   displayName,
   onLoginClick,
   onLogout,
-  lang,
-  toggleLang,
 }: {
   onCreateClick: () => void;
   onProfileClick: () => void;
@@ -1640,10 +1631,7 @@ function Header({
   displayName: string;
   onLoginClick: () => void;
   onLogout: () => void;
-  lang: import("./lang").Lang;
-  toggleLang: () => void;
 }) {
-  const t = useLangT();
 
   return (
     <header className="sticky top-0 z-50 bg-white dark:bg-background border-b border-border shadow-xs transition-colors duration-300">
@@ -1715,16 +1703,6 @@ function Header({
                 ) : (
                   <Moon className="w-4 h-4" />
                 )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleLang}
-                data-ocid="header.lang_toggle"
-                className="rounded-full cursor-pointer text-xs font-semibold px-2 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
-                aria-label="Toggle language"
-              >
-                {lang === "vi" ? "EN" : "VI"}
               </Button>
               <NotificationBell
                 notifications={notifications}
@@ -1821,7 +1799,6 @@ function SportDetailModal({
   onClose: () => void;
   onCreateMatch: (sport: string) => void;
 }) {
-  const t = useLangT();
   const cfg = sport ? getSportConfig(sport) : null;
   const description = sport ? (SPORT_DESCRIPTIONS[sport] ?? "") : "";
   const videoUrl = sport ? (SPORT_VIDEOS[sport] ?? "") : "";
@@ -1938,7 +1915,6 @@ function HeroSection({
   filterLocation: string;
   onFilterLocation: (v: string) => void;
 }) {
-  const t = useLangT();
   const [sport, setSport] = useState("all");
   const [selectedSport, setSelectedSport] = useState<string | null>(null);
 
@@ -1978,7 +1954,7 @@ function HeroSection({
             </p>
             <div className="flex gap-8">
               {[
-                { label: t.matchOpen, value: "120+" },
+                { label: "Trận đang mở", value: "120+" },
                 { label: "Môn thể thao", value: "10+" },
                 { label: "Sinh viên", value: "2K+" },
               ].map((s) => (
@@ -2037,7 +2013,7 @@ function HeroSection({
                 data-ocid="hero.select"
                 className="bg-white/10 border-white/20 text-white flex-1 min-h-[48px]"
               >
-                <SelectValue placeholder={t.chooseSport} />
+                <SelectValue placeholder="Chọn môn thể thao..." />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả môn</SelectItem>
@@ -2057,7 +2033,7 @@ function HeroSection({
               }}
             >
               <SelectTrigger className="bg-white/10 border-white/20 text-white flex-1 min-h-[48px]">
-                <SelectValue placeholder={t.chooseDistrict} />
+                <SelectValue placeholder="Chọn quận/huyện..." />
               </SelectTrigger>
               <SelectContent
                 position="popper"
@@ -2086,10 +2062,10 @@ function HeroSection({
           {/* Time + slots filters */}
           <div className="flex flex-wrap gap-2 mt-4 items-center">
             {[
-              { value: "all", label: t.all },
-              { value: "today", label: t.today },
-              { value: "weekend", label: t.weekend },
-              { value: "week", label: t.thisWeek },
+              { value: "all", label: "⏰ Tất cả" },
+              { value: "today", label: "📅 Hôm nay" },
+              { value: "weekend", label: "🎉 Cuối tuần" },
+              { value: "week", label: "📆 Tuần này" },
             ].map((opt) => (
               <button
                 key={opt.value}
@@ -2134,7 +2110,6 @@ function QrCheckInDisplay({
   matchId,
   onClose,
 }: { matchId: string; onClose: () => void }) {
-  const t = useLangT();
   const qrValue = `matchup-checkin:${matchId}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrValue)}&size=280x280&margin=12&format=png`;
   const [loaded, setLoaded] = useState(false);
@@ -2198,7 +2173,6 @@ function QrCheckInScanner({
   onScan,
   onClose,
 }: { onScan: (value: string) => void; onClose: () => void }) {
-  const t = useLangT();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -2229,7 +2203,7 @@ function QrCheckInScanner({
           setScanning(true);
         }
       } catch {
-        setError(t.cantCheckin);
+        setError("Không thể truy cập camera. Vui lòng cấp quyền camera.");
       }
     }
     if (hasBarcodeDetector) startCamera();
@@ -2347,7 +2321,7 @@ function QrCheckInScanner({
             <div className="flex gap-2">
               <Input
                 data-ocid="checkin.manual_input"
-                placeholder={t.pasteQR}
+                placeholder="Dán mã QR vào đây..."
                 value={manualCode}
                 onChange={(e) => setManualCode(e.target.value)}
                 onKeyDown={(e) => {
@@ -2396,7 +2370,6 @@ function MatchDetailModal({
   currentPrincipal?: string;
   profiles?: ProfileEntry[];
 }) {
-  const t = useLangT();
   const joinMutation = useJoinMatch();
   const leaveMutation = useLeaveMatch();
   const deleteMutation = useDeleteMatch();
@@ -2465,20 +2438,20 @@ function MatchDetailModal({
   async function handleJoin() {
     try {
       await joinMutation.mutateAsync(match!.id);
-      toast.success(t.joinSuccess);
+      toast.success("Tham gia trận thành công! 🎉");
       onClose();
     } catch {
-      toast.error(t.cantJoin);
+      toast.error("Không thể tham gia trận");
     }
   }
 
   async function handleLeave() {
     try {
       await leaveMutation.mutateAsync(match!.id);
-      toast.success(t.leaveSuccess);
+      toast.success("Rời trận thành công!");
       onClose();
     } catch {
-      toast.error(t.cantLeave);
+      toast.error("Không thể rời trận");
     }
   }
 
@@ -2494,14 +2467,14 @@ function MatchDetailModal({
       } catch {}
     } else {
       await navigator.clipboard.writeText(url);
-      toast.success(t.copiedLink);
+      toast.success("Đã sao chép link trận! 🔗");
     }
   }
 
   async function handleDelete() {
     try {
       await deleteMutation.mutateAsync(match!.id);
-      toast.success(t.deleteSuccess);
+      toast.success("Trận đã xóa thành công");
       setShowDeleteConfirm(false);
       onClose();
     } catch (err: unknown) {
@@ -2514,18 +2487,18 @@ function MatchDetailModal({
     setShowQrScanner(false);
     const prefix = "matchup-checkin:";
     if (!scannedValue.startsWith(prefix)) {
-      toast.error(t.invalidQR);
+      toast.error("Mã QR không hợp lệ");
       return;
     }
     const scannedMatchId = scannedValue.slice(prefix.length);
     if (scannedMatchId !== match!.id) {
-      toast.error(t.wrongMatchQR);
+      toast.error("Mã QR không thuộc trận này");
       return;
     }
     try {
       const result = await checkInMutation.mutateAsync(scannedMatchId);
       if (result.__kind__ === "ok") {
-        toast.success(t.checkinSuccess);
+        toast.success("Đã check-in thành công! ✅");
       } else {
         const errMsg = result.err;
         if (
@@ -2561,7 +2534,7 @@ function MatchDetailModal({
         ...prev,
         [pStr]: { ...prev[pStr], submitted: true },
       }));
-      toast.success(t.ratingSuccess);
+      toast.success("Đã gửi đánh giá!");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(msg);
@@ -2625,7 +2598,7 @@ function MatchDetailModal({
               className="font-semibold"
               style={{ color: isFull ? "#22c55e" : "#f59e0b" }}
             >
-              {isFull ? t.matchFull : `Còn ${missing} chỗ trống`}
+              {isFull ? "Đã đủ quân" : `Còn ${missing} chỗ trống`}
             </span>
           </div>
         </div>
@@ -2750,7 +2723,7 @@ function MatchDetailModal({
                       <div className="flex items-center gap-1 shrink-0">
                         <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                         <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold whitespace-nowrap">
-                          {checkInTime ? checkInTime : t.checkin}
+                          {checkInTime ? checkInTime : "✓ Check-in"}
                         </span>
                       </div>
                     ) : (
@@ -2849,7 +2822,7 @@ function MatchDetailModal({
                         </div>
                         <Input
                           data-ocid="match_detail.rating_comment_input"
-                          placeholder={t.ratingComment}
+                          placeholder="Nhận xét (tùy chọn)..."
                           value={rating.comment}
                           onChange={(e) =>
                             setRatings((prev) => ({
@@ -2881,7 +2854,7 @@ function MatchDetailModal({
                           {ratePlayerMutation.isPending ? (
                             <Loader2 className="w-3 h-3 animate-spin" />
                           ) : (
-                            t.sendRating
+                            "Gửi đánh giá"
                           )}
                         </Button>
                       </>
@@ -2907,7 +2880,7 @@ function MatchDetailModal({
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Đang rời...
                 </>
               ) : (
-                t.leaveMatch
+                "Rời trận"
               )}
             </Button>
           ) : (
@@ -2929,9 +2902,9 @@ function MatchDetailModal({
                   gia...
                 </>
               ) : isFull ? (
-                t.matchFull
+                "Đã đủ quân"
               ) : (
-                t.joinMatch
+                "Tham gia trận này"
               )}
             </Button>
           )}
@@ -2941,7 +2914,7 @@ function MatchDetailModal({
             variant="outline"
             onClick={handleShare}
             className="h-11 px-4 rounded-full border-primary/40 text-primary hover:bg-primary/10"
-            title={t.shareMatch}
+            title="Chia sẻ trận"
           >
             <Share2 className="w-4 h-4 mr-1.5" /> Chia sẻ
           </Button>
@@ -2953,7 +2926,7 @@ function MatchDetailModal({
               variant="outline"
               onClick={() => setShowQrCode(true)}
               className="h-11 px-4 rounded-full border-primary/40 text-primary hover:bg-primary/10"
-              title={t.showQR}
+              title="Hiển thị mã QR Check-in"
             >
               <QrCode className="w-4 h-4 mr-1.5" /> Mã QR
             </Button>
@@ -3051,7 +3024,7 @@ function MatchDetailModal({
                 {deleteMutation.isPending ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
                 ) : (
-                  t.deleteMatch
+                  "Xóa trận"
                 )}
               </Button>
               <Button
@@ -3089,7 +3062,6 @@ function MatchCard({
   currentPrincipal?: string;
   profiles?: ProfileEntry[];
 }) {
-  const t = useLangT();
   const joinMutation = useJoinMatch();
   const leaveMutation = useLeaveMatch();
   const { data: isParticipant = false } = useIsMatchParticipant(
@@ -3113,9 +3085,9 @@ function MatchCard({
     e.stopPropagation();
     try {
       await joinMutation.mutateAsync(match.id);
-      toast.success(t.joinSuccess);
+      toast.success("Tham gia trận thành công! 🎉");
     } catch {
-      toast.error(t.cantJoin);
+      toast.error("Không thể tham gia trận");
     }
   }
 
@@ -3125,7 +3097,7 @@ function MatchCard({
       await leaveMutation.mutateAsync(match.id);
       toast.success("Đã rời trận");
     } catch {
-      toast.error(t.cantLeave);
+      toast.error("Không thể rời trận");
     }
   }
 
@@ -3229,7 +3201,7 @@ function MatchCard({
                   color: isFull ? "#86efac" : "#fde68a",
                 }}
               >
-                {isFull ? t.matchFull : `${missing} chỗ trống`}
+                {isFull ? "Đã đủ quân" : `${missing} chỗ trống`}
               </span>
             </div>
           </div>
@@ -3259,7 +3231,7 @@ function MatchCard({
                 {leaveMutation.isPending ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  t.leaveMatch
+                  "Rời trận"
                 )}
               </Button>
             ) : (
@@ -3281,7 +3253,7 @@ function MatchCard({
                     tham gia...
                   </>
                 ) : isFull ? (
-                  t.matchFull
+                  "Đã đủ quân"
                 ) : (
                   "Tham gia ngay"
                 )}
@@ -3297,7 +3269,7 @@ function MatchCard({
                 size="sm"
                 variant="ghost"
                 className="h-10 px-3 text-white/80 hover:text-white hover:bg-white/15 rounded-full"
-                aria-label={t.viewDetail}
+                aria-label="Xem chi tiết"
               >
                 Xem
               </Button>
@@ -3329,7 +3301,6 @@ function SkeletonCard() {
 
 // ---- SPORT RANKING ----
 function SportRanking({ matches }: { matches: Match[] }) {
-  const t = useLangT();
   if (matches.length === 0) return null;
 
   const counts: Record<string, number> = {};
@@ -3384,7 +3355,6 @@ function calculateMatchPercent(
 // ---- TODAY'S MATCHES SECTION ----
 // Shows matches CREATED today (not daily suggestions)
 function TodayMatchesSection({ isLoggedIn }: { isLoggedIn: boolean }) {
-  const t = useLangT();
   const { data: allMatches = [], isLoading } = useGetAllMatches();
   const [showAll, setShowAll] = useState(false);
 
@@ -3514,7 +3484,8 @@ function TodayMatchesSection({ isLoggedIn }: { isLoggedIn: boolean }) {
                 className="rounded-full"
               >
                 {showAll
-                  ? t.collapse : `Xem thêm ${todayMatches.length - 3} trận`}
+                  ? "Thu gọn"
+                  : `Xem thêm ${todayMatches.length - 3} trận`}
               </Button>
             </div>
           )}
@@ -3528,7 +3499,6 @@ function TodayMatchesSection({ isLoggedIn }: { isLoggedIn: boolean }) {
 function FindPlayersSection({
   callerPrincipal,
 }: { callerPrincipal: string }) {
-  const t = useLangT();
   const { data: profiles = [], isLoading } = useGetAllProfiles(true);
   const { data: myMatches = [] } = useGetMyMatches(true);
   const { data: myProfile } = useGetMyProfile(true);
@@ -3595,7 +3565,7 @@ function FindPlayersSection({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           data-ocid="players.search_input"
-          placeholder={t.searchByName}
+          placeholder="Tìm kiếm theo tên..."
           value={searchName}
           onChange={(e) => setSearchName(e.target.value)}
           className="pl-9"
@@ -3605,7 +3575,7 @@ function FindPlayersSection({
             type="button"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             onClick={() => setSearchName("")}
-            aria-label={t.clearSearch}
+            aria-label="Xóa tìm kiếm"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -3838,7 +3808,6 @@ function LiveMatchesSection({
   currentPrincipal?: string;
   profiles?: ProfileEntry[];
 }) {
-  const t = useLangT();
   const { data: matches, isLoading } = useGetAllMatches();
   const deleteExpiredMutation = useDeleteExpiredMatches();
 
@@ -3977,7 +3946,6 @@ function LocationVenuePicker({
   sport: string;
   error?: string;
 }) {
-  const t = useLangT();
   const [userDistrict, setUserDistrict] = useState<string | null>(null);
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLng, setUserLng] = useState<number | null>(null);
@@ -4033,7 +4001,7 @@ function LocationVenuePicker({
 
   async function detectLocation() {
     if (!navigator.geolocation) {
-      setGpsError(t.gpsNotSupported);
+      setGpsError("Thiết bị không hỗ trợ GPS");
       return;
     }
     setIsDetectingLocation(true);
@@ -4071,9 +4039,9 @@ function LocationVenuePicker({
       (err) => {
         setIsDetectingLocation(false);
         if (err.code === err.PERMISSION_DENIED) {
-          setGpsError(t.locationDenied);
+          setGpsError("Bạn đã từ chối quyền truy cập vị trí");
         } else {
-          setGpsError(t.locationFailed);
+          setGpsError("Không thể lấy vị trí. Thử lại sau.");
         }
       },
       { timeout: 10000 },
@@ -4114,7 +4082,7 @@ function LocationVenuePicker({
           ) : (
             <MapPin className="w-3 h-3" />
           )}
-          {isDetectingLocation ? t.locating : t.useMyLocation}
+          {isDetectingLocation ? "Đang xác định..." : "📍 Dùng vị trí của tôi"}
         </Button>
         {userDistrict && (
           <span className="inline-flex items-center gap-1 text-xs bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-full px-2.5 py-1 font-medium">
@@ -4139,7 +4107,8 @@ function LocationVenuePicker({
                 ? `Sân ${sport} gợi ý`
                 : "Sân thể thao gợi ý"}
               {userLat !== null
-                ? t.nearestFirst : userDistrict
+                ? " — gần nhất trước"
+                : userDistrict
                   ? ` — ưu tiên ${userDistrict}`
                   : ""}
             </span>
@@ -4147,7 +4116,7 @@ function LocationVenuePicker({
               type="button"
               onClick={() => setShowVenueList(false)}
               className="text-muted-foreground hover:text-foreground transition-colors"
-              aria-label={t.closePitchList}
+              aria-label="Đóng danh sách sân"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -4197,7 +4166,8 @@ function LocationVenuePicker({
                 data-ocid="create.venue_show_more"
               >
                 {showMore
-                  ? t.collapse : `Xem thêm ${filteredVenues.length - 6} sân khác`}
+                  ? "Thu gọn"
+                  : `Xem thêm ${filteredVenues.length - 6} sân khác`}
               </button>
             </div>
           )}
@@ -4221,7 +4191,7 @@ function LocationVenuePicker({
         <Input
           id="location"
           data-ocid="create.location_input"
-          placeholder={t.locationPlaceholder}
+          placeholder="Hoặc nhập địa chỉ thủ công..."
           value={value}
           onChange={(e) => handleManualInput(e.target.value)}
           className={`pl-9 min-h-[48px] ${error ? "border-red-500" : ""}`}
@@ -4287,7 +4257,6 @@ function CreateMatchSection({
   isLoggedIn: boolean;
   onLoginRequest: () => void;
 }) {
-  const t = useLangT();
   const createMutation = useCreateMatch();
   const [form, setForm] = useState({
     sport: "none",
@@ -4317,12 +4286,12 @@ function CreateMatchSection({
   function validate(): boolean {
     const newErrors: Record<string, string> = {};
     if (!form.sport || form.sport === "none")
-      newErrors.sport = t.chooseSportFirst;
-    if (!form.location.trim()) newErrors.location = t.chooseLocationFirst;
-    if (!form.time) newErrors.time = t.chooseTimeFirst;
+      newErrors.sport = "Vui lòng chọn môn thể thao";
+    if (!form.location.trim()) newErrors.location = "Vui lòng nhập địa điểm";
+    if (!form.time) newErrors.time = "Vui lòng chọn thời gian";
     const missingNum = Number(form.missing);
     if (!form.missing || Number.isNaN(missingNum) || missingNum <= 0) {
-      newErrors.missing = t.missingPositive;
+      newErrors.missing = "Số người thiếu phải là số nguyên dương";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -4331,7 +4300,7 @@ function CreateMatchSection({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!isLoggedIn) {
-      toast.error(t.needLoginCreate);
+      toast.error("Bạn cần đăng nhập để tạo trận.");
       onLoginRequest();
       return;
     }
@@ -4349,7 +4318,7 @@ function CreateMatchSection({
     try {
       const result = await createMutation.mutateAsync(payload);
       console.log("[handleSubmit] success:", result);
-      toast.success(t.createSuccess);
+      toast.success("Tạo trận thành công! 🎉");
       setForm({
         sport: "none",
         title: "",
@@ -4369,7 +4338,7 @@ function CreateMatchSection({
         msg.toLowerCase().includes("anonymous") ||
         msg.toLowerCase().includes("not connected")
       ) {
-        toast.error(t.needLoginCreate);
+        toast.error("Bạn cần đăng nhập để tạo trận.");
       } else {
         toast.error(`Không thể tạo trận: ${msg}`);
       }
@@ -4413,7 +4382,7 @@ function CreateMatchSection({
                     data-ocid="create.select"
                     className={`w-full min-h-[48px] ${errors.sport ? "border-red-500" : ""}`}
                   >
-                    <SelectValue placeholder={t.chooseSportShort} />
+                    <SelectValue placeholder="Chọn môn..." />
                   </SelectTrigger>
                   <SelectContent>
                     {SPORTS.map((s) => (
@@ -4436,7 +4405,7 @@ function CreateMatchSection({
                 <Input
                   id="title"
                   data-ocid="create.input"
-                  placeholder={t.titlePlaceholder}
+                  placeholder="VD: Bóng đá chiều thứ 6"
                   value={form.title}
                   onChange={(e) => update("title", e.target.value)}
                   className="min-h-[48px]"
@@ -4488,7 +4457,7 @@ function CreateMatchSection({
                     type="number"
                     min="1"
                     max="20"
-                    placeholder={t.howManyMissing}
+                    placeholder="Cần thêm bao nhiêu người?"
                     value={form.missing}
                     onChange={(e) => update("missing", e.target.value)}
                     className={`pl-9 min-h-[48px] ${errors.missing ? "border-red-500" : ""}`}
@@ -4580,7 +4549,6 @@ function RankingSection({
   isLoggedIn,
   profiles,
 }: { isLoggedIn: boolean; profiles?: ProfileEntry[] }) {
-  const t = useLangT();
   const { data: rankings = [], isLoading } = useGetAllRankings(isLoggedIn);
   const ratePlayerMutation = useRatePlayer();
   const { user } = useLocalAuth();
@@ -4597,9 +4565,9 @@ function RankingSection({
         comment: "",
       });
       setSubmitted((prev) => ({ ...prev, [principal]: true }));
-      toast.success(t.alreadyRated);
+      toast.success("Đã đánh giá!");
     } catch {
-      toast.error(t.cantRate);
+      toast.error("Không thể đánh giá.");
     }
   }
 
@@ -4883,7 +4851,7 @@ const FALLBACK_NEWS: NewsItem[] = [
 function formatRelativeTime(isoDate: string): string {
   try {
     const diff = Date.now() - new Date(isoDate).getTime();
-    if (diff < 60_000) return t.justNow;
+    if (diff < 60_000) return "Vừa xong";
     if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} phút trước`;
     if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} giờ trước`;
     if (diff < 7 * 86_400_000)
@@ -5025,7 +4993,7 @@ function ArticleReaderModal({
               data-ocid="hot_news.close_button"
               onClick={onClose}
               className="absolute top-3 right-3 z-20 flex items-center justify-center w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 text-white hover:bg-black/80 transition-colors"
-              aria-label={t.close}
+              aria-label="Đóng"
             >
               <X className="w-4 h-4" />
             </button>
@@ -5206,7 +5174,7 @@ function HotNewsSection() {
             onClick={() => setShowAll((v) => !v)}
             className="rounded-full text-xs font-medium"
           >
-            {showAll ? t.collapse : `Xem tất cả (${news.length})`}
+            {showAll ? "Thu gọn" : `Xem tất cả (${news.length})`}
           </Button>
         )}
       </div>
@@ -5534,7 +5502,6 @@ export default function App() {
   const [preSelectedSport, setPreSelectedSport] = useState<string | null>(null);
   const createSectionRef = useRef<HTMLElement>(null);
   const { isDark, toggleDark } = useDarkMode();
-  const { lang, toggleLang, t } = useLang();
 
   // ---- Local auth (thay thế Internet Identity) ----
   const auth = useLocalAuth();
@@ -5632,7 +5599,6 @@ export default function App() {
     : null;
 
   return (
-    <LangContext.Provider value={t}>
     <div className="min-h-screen flex flex-col pb-16 sm:pb-0 bg-background text-foreground transition-colors duration-300">
       <Toaster position="top-right" />
       <AuthModal
@@ -5665,8 +5631,6 @@ export default function App() {
         displayName={user?.displayName ?? ""}
         onLoginClick={() => setAuthModalOpen(true)}
         onLogout={logout}
-        lang={lang}
-        toggleLang={toggleLang}
       />
       <ProfileSheet
         open={profileOpen}
@@ -5733,6 +5697,5 @@ export default function App() {
       <Footer />
       <MobileStickyBar onCreateClick={scrollToCreate} />
     </div>
-    </LangContext.Provider>
   );
 }
