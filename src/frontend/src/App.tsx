@@ -4754,6 +4754,7 @@ function RankingSection({
 
 // Fallback articles from real Vietnamese sports sites (shown when API is unavailable)
 // High-quality Unsplash fallback images per sport
+// Sport-specific fallback images — used ONLY when RSS provides no image or image fails to load.
 const SPORT_IMG_FALLBACK: Record<string, string> = {
   Soccer:
     "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80",
@@ -4764,9 +4765,9 @@ const SPORT_IMG_FALLBACK: Record<string, string> = {
   Swimming:
     "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80",
   Running:
-    "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=800&q=80",
+    "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80",
   Cycling:
-    "https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=800&q=80",
+    "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80",
   "Table Tennis":
     "https://images.unsplash.com/photo-1609743522653-52354461eb27?w=800&q=80",
   Futsal:
@@ -4872,16 +4873,15 @@ function NewsImageWithFallback({
   className,
   sport,
 }: { src: string; alt: string; className?: string; sport?: string }) {
-  // If sport is known → always use sport-specific image (RSS imageUrl is unreliable,
-  // a soccer feed can attach a running photo to a soccer article).
-  // If sport is unknown → trust the RSS imageUrl, fall back to generic sports image.
+  // Priority: use the actual RSS image first (it's article-specific).
+  // If it fails to load, fall back to sport-specific image, then generic fallback.
   const sportImg = sport ? SPORT_IMG_FALLBACK[sport] : undefined;
-  const resolvedSrc = sportImg ?? src ?? IMG_FALLBACK_DEFAULT;
+  const resolvedSrc = (src && src.trim() !== "") ? src : (sportImg ?? IMG_FALLBACK_DEFAULT);
   const fallback = sportImg ?? IMG_FALLBACK_DEFAULT;
 
   const [imgSrc, setImgSrc] = useState(resolvedSrc);
   useEffect(() => {
-    setImgSrc(sportImg ?? src ?? IMG_FALLBACK_DEFAULT);
+    setImgSrc((src && src.trim() !== "") ? src : (sportImg ?? IMG_FALLBACK_DEFAULT));
   }, [src, sportImg]);
   return (
     <img
