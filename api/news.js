@@ -15,6 +15,22 @@ const RSS_FEEDS = [
   },
 ];
 
+// Sport-specific fallback images — used when RSS item has no image.
+// Each photo ID is manually verified to show the correct sport.
+const SPORT_IMAGE_FALLBACK = {
+  Soccer:       "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80", // football on pitch
+  Basketball:   "https://images.unsplash.com/photo-1546519638405-a0564eba17c9?w=800&q=80", // basketball court
+  Tennis:       "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",   // tennis court/racket
+  Badminton:    "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80", // badminton shuttle
+  Swimming:     "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80", // swimming pool
+  Running:      "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80",   // marathon runners
+  Volleyball:   "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&q=80", // volleyball
+  Cycling:      "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80", // road cyclists
+  "Table Tennis":"https://images.unsplash.com/photo-1609743522653-52354461eb27?w=800&q=80", // table tennis
+  Futsal:       "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=800&q=80", // futsal
+};
+const IMAGE_FALLBACK_DEFAULT = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&q=80";
+
 const SPORT_KEYWORDS = {
   Soccer: ["bóng đá", "fifa", "premier league", "v-league", "world cup", "champions league", "la liga"],
   Basketball: ["bóng rổ", "nba", "basketball"],
@@ -63,9 +79,16 @@ function parseRSS(xml, source) {
     const title = titleMatch ? titleMatch[1].trim() : "";
     const description = descMatch ? descMatch[1].replace(/<[^>]+>/g, "").trim().slice(0, 200) : "";
     const url = linkMatch ? linkMatch[1].trim() : "";
-    const imageUrl = extractImageFromItem(itemXml);
     const publishedAt = pubDateMatch ? new Date(pubDateMatch[1]).toISOString() : new Date().toISOString();
     const id = guidMatch ? guidMatch[1] : url;
+    const sport = detectSport(title, description);
+
+    // Use article's actual image when available; otherwise use a sport-specific
+    // fallback so the image always matches the sport being covered.
+    const rawImage = extractImageFromItem(itemXml);
+    const imageUrl = (rawImage && rawImage.trim() !== "")
+      ? rawImage
+      : (sport ? (SPORT_IMAGE_FALLBACK[sport] || IMAGE_FALLBACK_DEFAULT) : IMAGE_FALLBACK_DEFAULT);
 
     if (title && url) {
       items.push({
@@ -76,7 +99,7 @@ function parseRSS(xml, source) {
         url,
         source,
         publishedAt,
-        sport: detectSport(title, description),
+        sport,
       });
     }
   }
