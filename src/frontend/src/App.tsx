@@ -4776,6 +4776,7 @@ const SPORT_IMG_FALLBACK: Record<string, string> = {
   Badminton:
     "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80",
 };
+// Generic sports fallback (not sport-specific)
 const IMG_FALLBACK_DEFAULT =
   "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&q=80";
 
@@ -4871,10 +4872,11 @@ function NewsImageWithFallback({
   className,
   sport,
 }: { src: string; alt: string; className?: string; sport?: string }) {
+  // Use sport-specific fallback if available, otherwise generic sports image
   const fallback =
     (sport ? SPORT_IMG_FALLBACK[sport] : undefined) ?? IMG_FALLBACK_DEFAULT;
+  // If no src provided at all, go straight to sport-specific fallback
   const [imgSrc, setImgSrc] = useState(src || fallback);
-  // Reset on prop change
   useEffect(() => {
     setImgSrc(src || fallback);
   }, [src, fallback]);
