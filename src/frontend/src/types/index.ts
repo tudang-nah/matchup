@@ -62,7 +62,7 @@ export interface NewsItem {
   url: string;
   source: string;
   publishedAt: string;
-  sport: string;
+  sport: string | null; // null when sport cannot be detected
 }
 
 // Player rank/leaderboard entry// Check-in record for a match (returned by getCheckIns)
