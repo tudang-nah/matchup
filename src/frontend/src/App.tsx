@@ -4872,14 +4872,17 @@ function NewsImageWithFallback({
   className,
   sport,
 }: { src: string; alt: string; className?: string; sport?: string }) {
-  // Use sport-specific fallback if available, otherwise generic sports image
-  const fallback =
-    (sport ? SPORT_IMG_FALLBACK[sport] : undefined) ?? IMG_FALLBACK_DEFAULT;
-  // If no src provided at all, go straight to sport-specific fallback
-  const [imgSrc, setImgSrc] = useState(src || fallback);
+  // If sport is known → always use sport-specific image (RSS imageUrl is unreliable,
+  // a soccer feed can attach a running photo to a soccer article).
+  // If sport is unknown → trust the RSS imageUrl, fall back to generic sports image.
+  const sportImg = sport ? SPORT_IMG_FALLBACK[sport] : undefined;
+  const resolvedSrc = sportImg ?? src ?? IMG_FALLBACK_DEFAULT;
+  const fallback = sportImg ?? IMG_FALLBACK_DEFAULT;
+
+  const [imgSrc, setImgSrc] = useState(resolvedSrc);
   useEffect(() => {
-    setImgSrc(src || fallback);
-  }, [src, fallback]);
+    setImgSrc(sportImg ?? src ?? IMG_FALLBACK_DEFAULT);
+  }, [src, sportImg]);
   return (
     <img
       src={imgSrc}
