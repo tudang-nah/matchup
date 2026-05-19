@@ -31,7 +31,7 @@ function detectSport(title, description) {
   for (const [sport, keywords] of Object.entries(SPORT_KEYWORDS)) {
     if (keywords.some((kw) => text.includes(kw))) return sport;
   }
-  return "Soccer";
+  return null; // Unknown sport — don't assume Soccer
 }
 
 function extractImageFromItem(itemXml) {
