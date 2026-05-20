@@ -4755,31 +4755,23 @@ function RankingSection({
 // Fallback articles from real Vietnamese sports sites (shown when API is unavailable)
 // High-quality Unsplash fallback images per sport
 // Sport-specific fallback images — used ONLY when RSS provides no image or image fails to load.
+// Ảnh fallback theo từng môn — hiển thị khi RSS không có ảnh riêng.
+// Mỗi photo ID đã được kiểm tra tay để đúng môn.
 const SPORT_IMG_FALLBACK: Record<string, string> = {
-  Soccer:
-    "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80",
-  Basketball:
-    "https://images.unsplash.com/photo-1546519638405-a0564eba17c9?w=800&q=80",
-  Tennis:
-    "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",
-  Swimming:
-    "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80",
-  Running:
-    "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80",
-  Cycling:
-    "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80",
-  "Table Tennis":
-    "https://images.unsplash.com/photo-1609743522653-52354461eb27?w=800&q=80",
-  Futsal:
-    "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=800&q=80",
-  Volleyball:
-    "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&q=80",
-  Badminton:
-    "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80",
+  Soccer:        "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80", // bóng đá
+  Basketball:    "https://images.unsplash.com/photo-1546519638405-a0564eba17c9?w=800&q=80", // bóng rổ
+  Tennis:        "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",   // tennis
+  Swimming:      "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80", // bơi lội
+  Running:       "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80",   // chạy bộ
+  Cycling:       "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80", // xe đạp
+  "Table Tennis":"https://images.unsplash.com/photo-1609743522653-52354461eb27?w=800&q=80", // bóng bàn
+  Futsal:        "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=800&q=80", // futsal
+  Volleyball:    "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&q=80", // bóng chuyền
+  Badminton:     "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80", // cầu lông
 };
-// Generic sports fallback (not sport-specific)
+// Generic sports fallback — chỉ dùng khi KHÔNG detect được môn nào
 const IMG_FALLBACK_DEFAULT =
-  "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&q=80";
+  "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&q=80"; // athletes chung
 
 const FALLBACK_NEWS: NewsItem[] = [
   {
