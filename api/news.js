@@ -37,21 +37,23 @@ const SPORT_KEYWORDS = {
     "u17", "u19", "u20", "u21", "u23",
     // Giải Việt Nam
     "v-league", "hà nội fc", "cahn", "slna", "clb",
-    // Đội tuyển quốc gia phổ biến
+    // Đội tuyển quốc gia
     "bồ đào nha", "tây ban nha", "argentina", "brazil",
     // CLB châu Âu
     "arsenal", "chelsea", "manchester", "liverpool", "tottenham",
     "real madrid", "barcelona", "psg", "juventus", "milan", "inter", "bayern",
-    "atletico", "dortmund", "porto", "benfica", "ajax",
-    // Người nổi tiếng
+    "atletico", "dortmund", "porto", "benfica", "ajax", "man city", "man utd",
+    // Cầu thủ / HLV
     "ronaldo", "messi", "guardiola", "mourinho", "mbappe", "mbappé",
     "vitinha", "salah", "haaland", "kane", "neymar", "vinicius",
+    "keane", "fernandes", "rashford", "rooney", "beckham", "zidane",
+    "maresca", "ancelotti", "klopp", "tuchel", "arteta",
   ],
   Basketball: ["bóng rổ", "nba", "basketball", "vba", "wnba"],
-  Tennis:     ["tennis", "wimbledon", "us open", "roland garros", "australian open", "atp", "wta", "davis cup"],
+  Tennis:     ["tennis", "tay vợt", "wimbledon", "us open", "roland garros", "australian open", "atp", "wta", "davis cup"],
   Badminton:  ["cầu lông", "badminton", "bwf"],
   Swimming:   ["bơi lội", "bơi", "swimming"],
-  Running:    ["marathon", "chạy bộ", "điền kinh", "athletics", "virtual race", "half marathon"],
+  Running:    ["marathon", "chạy bộ", "giải chạy", "virtual race", "vitural race", "điền kinh", "athletics", "half marathon", "nab vietnam"],
   Volleyball: ["bóng chuyền", "volleyball", "avc", "vnl"],
   Cycling:    ["xe đạp", "cycling", "tour de france", "giro d'italia", "vuelta"],
   "Table Tennis": ["bóng bàn", "table tennis", "ittf"],
