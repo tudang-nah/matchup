@@ -15,31 +15,33 @@ const RSS_FEEDS = [
   },
 ];
 
-// Sport-specific fallback images — used when RSS item has no image.
-// Each photo ID is manually verified to show the correct sport.
+// Sport-specific fallback images — used when RSS item has no dedicated image.
+// Each photo is verified to show the correct sport.
 const SPORT_IMAGE_FALLBACK = {
-  Soccer:       "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80", // football on pitch
-  Basketball:   "https://images.unsplash.com/photo-1546519638405-a0564eba17c9?w=800&q=80", // basketball court
-  Tennis:       "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",   // tennis court/racket
-  Badminton:    "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80", // badminton shuttle
-  Swimming:     "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80", // swimming pool
-  Running:      "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80",   // marathon runners
-  Volleyball:   "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&q=80", // volleyball
-  Cycling:      "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80", // road cyclists
-  "Table Tennis":"https://images.unsplash.com/photo-1609743522653-52354461eb27?w=800&q=80", // table tennis
-  Futsal:       "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=800&q=80", // futsal
+  Soccer:        "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80",
+  Basketball:    "https://images.unsplash.com/photo-1546519638405-a0564eba17c9?w=800&q=80",
+  Tennis:        "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",
+  Badminton:     "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80",
+  Swimming:      "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80",
+  Running:       "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80",
+  Volleyball:    "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&q=80",
+  Cycling:       "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80",
+  "Table Tennis":"https://images.unsplash.com/photo-1609743522653-52354461eb27?w=800&q=80",
+  Futsal:        "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=800&q=80",
 };
 const IMAGE_FALLBACK_DEFAULT = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&q=80";
 
 const SPORT_KEYWORDS = {
-  Soccer: ["bóng đá", "fifa", "premier league", "v-league", "world cup", "champions league", "la liga"],
-  Basketball: ["bóng rổ", "nba", "basketball"],
-  Tennis: ["tennis", "wimbledon", "us open", "roland garros"],
+  Soccer: ["bóng đá", "fifa", "premier league", "v-league", "world cup", "champions league", "la liga", "cahn", "hà nội fc", "slna", "clb"],
+  Basketball: ["bóng rổ", "nba", "basketball", "vba"],
+  Tennis: ["tennis", "wimbledon", "us open", "roland garros", "atp", "wta"],
   Badminton: ["cầu lông", "badminton"],
-  Swimming: ["bơi lội", "swimming"],
-  Running: ["marathon", "chạy bộ", "điền kinh", "athletics"],
-  Volleyball: ["bóng chuyền", "volleyball"],
+  Swimming: ["bơi lội", "swimming", "bơi"],
+  Running: ["marathon", "chạy bộ", "điền kinh", "athletics", "virtual race"],
+  Volleyball: ["bóng chuyền", "volleyball", "avc"],
   Cycling: ["xe đạp", "cycling", "tour de france"],
+  "Table Tennis": ["bóng bàn", "table tennis"],
+  Futsal: ["futsal"],
 };
 
 function detectSport(title, description) {
@@ -47,16 +49,19 @@ function detectSport(title, description) {
   for (const [sport, keywords] of Object.entries(SPORT_KEYWORDS)) {
     if (keywords.some((kw) => text.includes(kw))) return sport;
   }
-  return null; // Unknown sport — don't assume Soccer
+  return null;
 }
 
 function extractImageFromItem(itemXml) {
+  // Only trust dedicated media tags — NOT <img> inside <description>.
+  // VnExpress RSS embeds <img> tags in the description's HTML that often
+  // belong to a different article shown alongside on the homepage, causing
+  // a soccer article to display a running photo, etc.
   const mediaMatch = itemXml.match(/media:content[^>]*url="([^"]+)"/);
   if (mediaMatch) return mediaMatch[1];
   const enclosureMatch = itemXml.match(/enclosure[^>]*url="([^"]+)"/);
   if (enclosureMatch) return enclosureMatch[1];
-  const imgMatch = itemXml.match(/<img[^>]*src="([^"]+)"/);
-  if (imgMatch) return imgMatch[1];
+  // Do NOT fall through to <img> in description — those images are unreliable.
   return "";
 }
 
@@ -83,8 +88,9 @@ function parseRSS(xml, source) {
     const id = guidMatch ? guidMatch[1] : url;
     const sport = detectSport(title, description);
 
-    // Use article's actual image when available; otherwise use a sport-specific
-    // fallback so the image always matches the sport being covered.
+    // Use the article's dedicated image (media:content / enclosure) when available.
+    // Otherwise fall back to a sport-matched Unsplash photo so the image always
+    // reflects the correct sport — never a random photo from another article.
     const rawImage = extractImageFromItem(itemXml);
     const imageUrl = (rawImage && rawImage.trim() !== "")
       ? rawImage
