@@ -8,29 +8,30 @@ const RSS_FEEDS = [
   { url: "https://tuoitre.vn/rss/the-thao.rss", source: "Tuổi Trẻ" },
 ];
 
-// Sport-specific fallback images — used when RSS item has no dedicated image.
+// Ảnh fallback theo từng môn — mỗi photo ID đã kiểm tra tay đúng môn.
 const SPORT_IMAGE_FALLBACK = {
-  Soccer:        "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80",
-  Basketball:    "https://images.unsplash.com/photo-1546519638405-a0564eba17c9?w=800&q=80",
-  Tennis:        "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",
-  Badminton:     "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80",
-  Swimming:      "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80",
-  Running:       "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80",
-  Volleyball:    "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&q=80",
-  Cycling:       "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80",
-  "Table Tennis":"https://images.unsplash.com/photo-1609743522653-52354461eb27?w=800&q=80",
-  Futsal:        "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=800&q=80",
+  Soccer:        "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80", // bóng đá
+  Basketball:    "https://images.unsplash.com/photo-1546519638405-a0564eba17c9?w=800&q=80", // bóng rổ
+  Tennis:        "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",   // tennis
+  Badminton:     "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80", // cầu lông
+  Swimming:      "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80", // bơi lội
+  Running:       "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80",   // chạy bộ
+  Volleyball:    "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&q=80", // bóng chuyền
+  Cycling:       "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80", // xe đạp
+  "Table Tennis":"https://images.unsplash.com/photo-1609743522653-52354461eb27?w=800&q=80", // bóng bàn
+  Futsal:        "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=800&q=80", // futsal
 };
-const IMAGE_FALLBACK_DEFAULT = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&q=80";
+// Ảnh thể thao chung — chỉ dùng khi KHÔNG detect được môn nào
+const IMAGE_FALLBACK_DEFAULT = "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&q=80";
 
 const SPORT_KEYWORDS = {
   Soccer: [
-    // Vị trí / thuật ngữ bóng đá
+    // Vị trí / thuật ngữ
     "bóng đá", "cầu thủ", "thủ môn", "tiền đạo", "tiền vệ", "hậu vệ", "trung vệ",
     "huấn luyện viên", "hlv",
-    // Giải đấu quốc tế
+    // Giải quốc tế
     "ngoại hạng anh", "ngoại hạng", "premier league", "la liga", "serie a",
-    "bundesliga", "ligue 1", "champions league", "europa league",
+    "bundesliga", "ligue 1", "champions league", "europa league", "conference league",
     "world cup", "euro ", "copa america", "afc", "fifa",
     // Giải trẻ / châu lục
     "u17", "u19", "u20", "u21", "u23",
@@ -38,22 +39,23 @@ const SPORT_KEYWORDS = {
     "v-league", "hà nội fc", "cahn", "slna", "clb",
     // Đội tuyển quốc gia phổ biến
     "bồ đào nha", "tây ban nha", "argentina", "brazil",
-    // CLB châu Âu nổi tiếng
+    // CLB châu Âu
     "arsenal", "chelsea", "manchester", "liverpool", "tottenham",
     "real madrid", "barcelona", "psg", "juventus", "milan", "inter", "bayern",
-    // Cầu thủ / HLV nổi tiếng
+    "atletico", "dortmund", "porto", "benfica", "ajax",
+    // Người nổi tiếng
     "ronaldo", "messi", "guardiola", "mourinho", "mbappe", "mbappé",
-    "vitinha", "salah", "haaland", "kane", "neymar",
+    "vitinha", "salah", "haaland", "kane", "neymar", "vinicius",
   ],
-  Basketball: ["bóng rổ", "nba", "basketball", "vba"],
-  Tennis:     ["tennis", "wimbledon", "us open", "roland garros", "atp", "wta", "davis cup"],
+  Basketball: ["bóng rổ", "nba", "basketball", "vba", "wnba"],
+  Tennis:     ["tennis", "wimbledon", "us open", "roland garros", "australian open", "atp", "wta", "davis cup"],
   Badminton:  ["cầu lông", "badminton", "bwf"],
-  Swimming:   ["bơi lội", "swimming", "bơi"],
-  Running:    ["marathon", "chạy bộ", "điền kinh", "athletics", "virtual race"],
-  Volleyball: ["bóng chuyền", "volleyball", "avc"],
-  Cycling:    ["xe đạp", "cycling", "tour de france"],
-  "Table Tennis": ["bóng bàn", "table tennis"],
-  Futsal:     ["futsal"],
+  Swimming:   ["bơi lội", "bơi", "swimming"],
+  Running:    ["marathon", "chạy bộ", "điền kinh", "athletics", "virtual race", "half marathon"],
+  Volleyball: ["bóng chuyền", "volleyball", "avc", "vnl"],
+  Cycling:    ["xe đạp", "cycling", "tour de france", "giro d'italia", "vuelta"],
+  "Table Tennis": ["bóng bàn", "table tennis", "ittf"],
+  Futsal:     ["futsal", "fifa futsal"],
 };
 
 function detectSport(title, description) {
@@ -65,9 +67,9 @@ function detectSport(title, description) {
 }
 
 function extractImageFromItem(itemXml) {
-  // Only use dedicated media tags — NOT <img> inside <description>.
-  // VnExpress RSS embeds <img> tags in the description HTML that often belong
-  // to a different article on the page, causing wrong sport images.
+  // Chỉ lấy ảnh từ media tag chính thức — KHÔNG lấy <img> trong <description>.
+  // VnExpress nhúng <img> trong description HTML của bài khác cùng trang,
+  // dẫn đến bài bóng đá hiển thị ảnh chạy bộ, v.v.
   const mediaMatch = itemXml.match(/media:content[^>]*url="([^"]+)"/);
   if (mediaMatch) return mediaMatch[1];
   const enclosureMatch = itemXml.match(/enclosure[^>]*url="([^"]+)"/);
@@ -98,9 +100,9 @@ function parseRSS(xml, source) {
     const id = guidMatch ? guidMatch[1] : url;
     const sport = detectSport(title, description);
 
-    // Use the article's dedicated image when available.
-    // Otherwise fall back to a sport-matched photo so the image always
-    // reflects the correct sport — never a random photo from another article.
+    // Dùng ảnh riêng của bài nếu có (media:content / enclosure).
+    // Nếu không có → dùng ảnh đúng môn từ SPORT_IMAGE_FALLBACK.
+    // Nếu không detect được môn → dùng ảnh thể thao chung.
     const rawImage = extractImageFromItem(itemXml);
     const imageUrl = (rawImage && rawImage.trim() !== "")
       ? rawImage
